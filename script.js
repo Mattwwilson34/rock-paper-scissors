@@ -4,76 +4,113 @@ const computerPlay = () => {
     randomNum = Math.floor(Math.random() * computerChoices.length);
     return computerChoices[randomNum];
 };
-
-/// Make sure player input has the first letter capitalized and the rest of the string lower case so that it wont break if else statements
-const validatePlayerInput = (playerSelection) => {
-    firstLetter = playerSelection.charAt(0);
-    strNoFirstLetter = playerSelection.slice(1);
-    const validatedInput = firstLetter.toUpperCase() + strNoFirstLetter.toLowerCase();
-    return validatedInput;
-};
-
-/// play one round of rock paper scissors and return either true(win) false(lose) or draw for evaluation in game()
 const playRound = (playerSelection, computerSelection) => {
     playerWon = true;
+    const message = document.querySelector('.message');
 
     if (playerSelection === 'Rock' && computerSelection === 'Paper') {
-        return playerWon;
-    } else if (playerSelection === 'Rock' && computerSelection === 'Scissors') {
+        message.textContent = 'Paper beats Rock you lost!';
         return !playerWon;
+    } else if (playerSelection === 'Rock' && computerSelection === 'Scissors') {
+        message.textContent = 'Rock beats Scissors you won!';
+        return playerWon;
     } else if (playerSelection === 'Paper' && computerSelection === 'Rock') {
+        message.textContent = 'Paper beats Rock you won!';
         return playerWon;
     } else if (playerSelection === 'Paper' && computerSelection === 'Scissor') {
+        message.textContent = 'Scissors beats Paper you lost!';
         return !playerWon;
     } else if (playerSelection === 'Scissors' && computerSelection === 'Rock') {
+        message.textContent = 'Rock beats Scissors you lost!';
         return !playerWon;
     } else if (playerSelection === 'Scissors' && computerSelection === 'Paper') {
+        message.textContent = 'Scissors beats Paper you won!';
         return playerWon;
     }
     ///Draws
     else if (playerSelection === 'Rock' && computerSelection === 'Rock') {
+        message.textContent = 'You both played Rock, its a draw!';
         return 'draw';
     } else if (playerSelection === 'Paper' && computerSelection === 'Paper') {
+        message.textContent = 'You both played Paper, its a draw!';
         return 'draw';
     } else if (playerSelection === 'Scissors' && computerSelection === 'Scissors') {
+        message.textContent = 'You both played Scissors, its a draw!';
         return 'draw';
     }
 };
+const updateScore = (roundResults) => {
+    const playerScoreSpan = document.querySelector('.playerScore');
+    const computerScoreSpan = document.querySelector('.computerScore');
+    let pScore = playerScoreSpan.textContent;
+    let cScore = computerScoreSpan.textContent;
 
-const game = () => {
-    let gameOver = false;
-    let playerScore = 0;
-    let computerScore = 0;
-
-    while (gameOver === false) {
-        const computerSelection = computerPlay();
-        let playerSelection = prompt('Enter your choice (Rock, Paper, Scissors)');
-        // make player input case insensitive
-        playerSelection = validatePlayerInput(playerSelection);
-        const roundResults = playRound(playerSelection, computerSelection);
-
-        //determine round results so that scores can be inciments and we can tell if the player or the computer has reached a score of 5 that will end the game
-        if (roundResults) {
-            playerScore++;
-            console.log(`You win! ${playerSelection} beats ${computerSelection}`);
-            console.log(`Current Score: You: ${playerScore} Computer: ${computerScore}`);
-        } else if (!roundResults) {
-            computerScore++;
-            console.log(`You lose! ${computerSelection} beats ${playerSelection}`);
-            console.log(`Current Score: You: ${playerScore} Computer: ${computerScore}`);
-        } else console.log(`It's a draw ${playerSelection} is the same as ${computerSelection}`);
-
-        // determine if game is over and announce winner
-        if (playerScore === 5) {
-            gameOver = true;
-            console.log(`You won! Final score: You: ${playerScore} Computer: ${computerScore}`);
-        } else if (computerScore === 5) {
-            gameOver = true;
-            console.log(`You lost! Final score: Computer: ${computerScore} You: ${playerScore}`);
-        }
+    if (roundResults === 'draw') {
+        return 'Draw!';
+    } else if (roundResults) {
+        pScore++;
+    } else if (!roundResults) {
+        cScore++;
     }
-
-    console.log;
+    playerScoreSpan.textContent = pScore;
+    computerScoreSpan.textContent = cScore;
+    determineWinner(pScore, cScore);
+    return;
 };
+const resetGame = () => {
+    const choiceBtns = document.querySelectorAll('.choice-btn');
+    const playerScoreSpan = document.querySelector('.playerScore');
+    const computerScoreSpan = document.querySelector('.computerScore');
+    const mainContainer = document.querySelector('.main-container');
+    const newGameBtnWrapper = document.querySelector('.new-game-wrapper');
+    const message = document.querySelector('.message');
 
+    choiceBtns.forEach((btn) => {
+        btn.disabled = false;
+    });
+
+    mainContainer.removeChild(newGameBtnWrapper);
+    message.textContent = '';
+    playerScoreSpan.textContent = 0;
+    computerScoreSpan.textContent = 0;
+};
+const determineWinner = (pScore, cScore) => {
+    const message = document.querySelector('.message');
+    const choiceBtns = document.querySelectorAll('.choice-btn');
+    if (pScore > 4 || cScore > 4) {
+        if (pScore > 4) {
+            message.textContent = 'You won the game!';
+        } else {
+            message.textContent = 'The computer Won!';
+        }
+        console.log('Game Over');
+        choiceBtns.forEach((btn) => {
+            btn.disabled = true;
+        });
+        const mainContainer = document.querySelector('.main-container');
+        const newGameBtnWrapper = document.createElement('div');
+        newGameBtnWrapper.classList.add('new-game-wrapper');
+        const newGameBtn = document.createElement('button');
+        newGameBtn.classList.add('new-game-btn');
+        newGameBtn.innerText = 'Play Again?';
+        mainContainer.append(newGameBtnWrapper);
+        newGameBtnWrapper.append(newGameBtn);
+
+        newGameBtn.addEventListener('click', resetGame);
+    }
+};
+const addPlayerChoiceBtnListeners = () => {
+    const choiceBtns = document.querySelectorAll('.choice-btn');
+    choiceBtns.forEach((btn) => {
+        btn.addEventListener('click', (e) => {
+            const playerSelection = e.target.textContent;
+            const computerSelection = computerPlay();
+            const roundResults = playRound(playerSelection, computerSelection);
+            updateScore(roundResults);
+        });
+    });
+};
+const game = () => {
+    addPlayerChoiceBtnListeners();
+};
 game();
